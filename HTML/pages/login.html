@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SEE-LIT | Login</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-shell">
+      <a class="logo" href="home.html">SEE-LIT</a>
+      <nav class="nav-links">
+        <a href="home.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="Discountpackage.html">Offers</a>
+        <a class="active-link" href="login.html">Login</a>
+        <a href="register.html">Register</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="btn btn-ghost small" href="home.html">Shop</a>
+        <a class="btn btn-primary small" href="register.html">Create account</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container auth-grid">
+      <div>
+        <p class="eyebrow">Welcome back</p>
+        <h2>Pick up your routine where you left off.</h2>
+        <p>Log in to track orders, save routines, and receive skin coaching tailored to your goals.</p>
+        <ul class="list">
+          <li><i class="fa-solid fa-circle-check"></i> Secure account</li>
+          <li><i class="fa-solid fa-truck"></i> Order tracking</li>
+          <li><i class="fa-solid fa-seedling"></i> Personalized routines</li>
+        </ul>
+      </div>
+
+      <form class="auth-card">
+        <h3>Login</h3>
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" name="password" placeholder="••••••••" required minlength="6">
+        </div>
+        <div class="form-actions">
+          <label class="note"><input type="checkbox" name="remember"> Remember me</label>
+          <a class="note" href="#">Forgot password?</a>
+        </div>
+        <button class="btn btn-primary" type="submit" style="width: 100%; justify-content: center;">Login</button>
+        <p class="helper" style="margin-top: 12px;">Don't have an account? <a href="register.html">Create one</a></p>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <div class="logo">SEE-LIT</div>
+        <p>Skin-first, science-forward care made in Egypt. Clean, cruelty free, and crafted for long-term results.</p>
+      </div>
+      <div>
+        <div class="footer-title">Navigate</div>
+        <ul class="list">
+          <li><a href="home.html">Home</a></li>
+          <li><a href="Discountpackage.html">Offers</a></li>
+          <li><a href="register.html">Register</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-title">Support</div>
+        <ul class="list">
+          <li><a href="https://wa.me/201101162224?" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href="https://see-lit.com" target="_blank" rel="noopener">Website</a></li>
+        </ul>
+        <p class="helper" style="margin-top:12px;">Crafted by Aaesha Ebrraheem.</p>
+      </div>
+    </div>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
