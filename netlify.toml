@@ -1,9 +1,9 @@
 [build]
-  publish = "src/pages"
-  # No build command needed; site is already static HTML/CSS/JS
+  # Serve the entire src folder so CSS/JS/images are available
+  publish = "src"
   command = ""
 
 [[redirects]]
   from = "/"
-  to = "/index.html"
+  to = "/pages/index.html"
   status = 200
