@@ -196,7 +196,7 @@
         }
         saveSession({ email, name: user.firstName || 'Member' });
         showStatus(statusEl, 'Login successful. Redirecting...', 'success');
-        setTimeout(() => (window.location.href = 'home.html'), 800);
+        setTimeout(() => (window.location.href = 'index.html'), 800);
       });
     }
 
@@ -236,7 +236,7 @@
         saveUsers(users);
         saveSession({ email, name: first });
         showStatus(statusEl, 'Account created. Redirecting...', 'success');
-        setTimeout(() => (window.location.href = 'home.html'), 800);
+        setTimeout(() => (window.location.href = 'index.html'), 800);
       });
     }
   }
@@ -246,17 +246,19 @@
     const navActions = qs('.nav-actions');
     const navLoginLinks = qsa('.navbar .nav-links a[href="login.html"]');
     const navRegisterLinks = qsa('.navbar .nav-links a[href="register.html"]');
-    if (!navActions) return;
+    const footerAuthLinks = qsa('footer a[href="login.html"], footer a[href="register.html"]');
 
     // Hide login/register when logged in
-    const actionLoginLink = qs('a[href="login.html"]', navActions);
-    const actionRegisterLink = qs('a[href="register.html"]', navActions);
+    const actionLoginLink = navActions ? qs('a[href="login.html"]', navActions) : null;
+    const actionRegisterLink = navActions ? qs('a[href="register.html"]', navActions) : null;
     [actionLoginLink, actionRegisterLink].forEach((link) => {
       if (link) link.classList.toggle('hidden', Boolean(session));
     });
     navLoginLinks.forEach((link) => link.classList.toggle('hidden', Boolean(session)));
     navRegisterLinks.forEach((link) => link.classList.toggle('hidden', Boolean(session)));
+    footerAuthLinks.forEach((link) => link.classList.toggle('hidden', Boolean(session)));
 
+    if (!navActions) return;
     if (qs('#logout-btn')) qs('#logout-btn').remove();
     if (qs('#session-chip')) qs('#session-chip').remove();
 
@@ -271,7 +273,7 @@
       logoutBtn.id = 'logout-btn';
       logoutBtn.type = 'button';
       logoutBtn.className = 'btn btn-ghost small';
-      logoutBtn.textContent = 'Logout';
+      logoutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Logout';
       logoutBtn.addEventListener('click', () => {
         clearSession();
         window.location.reload();
@@ -316,11 +318,32 @@
     });
   }
 
+  function setupNavToggle() {
+    const navbar = qs('.navbar');
+    const toggle = qs('.nav-toggle');
+    if (!navbar || !toggle) return;
+
+    const navLinks = qsa('.nav-links a');
+
+    toggle.addEventListener('click', () => {
+      const open = navbar.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    navLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        navbar.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     attachCartHandlers();
     attachAuthHandlers();
     updateSessionUI();
     setupAnimations();
     enableSmoothScroll();
+    setupNavToggle();
   });
 })();
