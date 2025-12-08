@@ -1,0 +1,9 @@
+[build]
+  publish = "src/pages"
+  # No build command needed; site is already static HTML/CSS/JS
+  command = ""
+
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
