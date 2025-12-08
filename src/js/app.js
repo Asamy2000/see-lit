@@ -8,7 +8,11 @@
 
   function loadCart() {
     try {
-      return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+      const items = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+      return items.map((item) => ({
+        ...item,
+        quantity: Math.max(1, Number(item.quantity || 1)),
+      }));
     } catch (e) {
       return [];
     }
@@ -83,21 +87,55 @@
     const list = qs('#cart-items');
     const totalEl = qs('#cart-total-amount');
     const countEl = qs('#cart-count');
-    if (countEl) countEl.textContent = items.length.toString();
+    const checkoutBtn = qs('#cart-checkout');
+    const clearBtn = qs('#cart-clear');
+
+    const totalCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    if (countEl) countEl.textContent = totalCount.toString();
 
     if (!list) return;
     list.innerHTML = '';
+
+    if (!items.length) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <p><strong>Your bag is empty</strong></p>
+          <p class="helper">Add a bestseller to get started.</p>
+          <a class="btn btn-primary small cart-shop-btn" href="index.html#best-sellers">
+            <span class="btn-label">Shop bestsellers</span>
+          </a>
+        </div>
+      `;
+      if (totalEl) totalEl.textContent = 'LE 0.00';
+      if (checkoutBtn) checkoutBtn.disabled = true;
+      if (clearBtn) clearBtn.disabled = true;
+      return;
+    }
+
+    if (checkoutBtn) checkoutBtn.disabled = false;
+    if (clearBtn) clearBtn.disabled = false;
+
     let total = 0;
     items.forEach((item, idx) => {
-      total += Number(item.price || 0);
+      const lineTotal = Number(item.price || 0) * (item.quantity || 1);
+      total += lineTotal;
       const row = document.createElement('div');
       row.className = 'cart-row';
       row.innerHTML = `
-        <div>
+        <div class="cart-row-main">
+          <img class="cart-thumb" src="${item.image}" alt="${item.name}" width="64" height="64" loading="lazy">
           <strong>${item.name}</strong>
-          <div class="helper">LE ${item.price}</div>
+          <div class="helper">LE ${Number(item.price || 0).toFixed(2)} each</div>
         </div>
-        <button type="button" class="btn btn-ghost small" data-remove="${idx}"><i class="fa-solid fa-xmark"></i></button>
+        <div class="cart-row-actions">
+          <div class="qty-control" data-index="${idx}">
+            <button type="button" class="qty-btn" data-action="decrease" data-index="${idx}" aria-label="Decrease quantity">-</button>
+            <span class="qty-value">${item.quantity || 1}</span>
+            <button type="button" class="qty-btn" data-action="increase" data-index="${idx}" aria-label="Increase quantity">+</button>
+          </div>
+          <div class="line-total">LE ${lineTotal.toFixed(2)}</div>
+          <button type="button" class="btn btn-ghost small" data-remove="${idx}" aria-label="Remove item"><i class="fa-solid fa-xmark"></i></button>
+        </div>
       `;
       list.appendChild(row);
     });
@@ -134,16 +172,52 @@
       renderCart();
     });
     checkoutBtn?.addEventListener('click', () => {
-      alert('Cart validated. Connect your checkout API to proceed.');
+      const items = loadCart();
+      if (!items.length) {
+        alert('Your cart is empty.');
+        return;
+      }
+      const total = items.reduce((sum, item) => sum + Number(item.price || 0) * (item.quantity || 1), 0);
+      alert(`Checkout placeholder:\\nSend this payload to your backend to create an order.\\nItems: ${items.length} (${items.reduce((s, i) => s + (i.quantity || 1), 0)} units)\\nTotal: LE ${total.toFixed(2)}`);
     });
     itemsContainer?.addEventListener('click', (e) => {
+      const shopBtn = e.target.closest?.('.cart-shop-btn');
+      if (shopBtn) {
+        e.preventDefault();
+        if (!shopBtn.classList.contains('loading')) {
+          shopBtn.classList.add('loading');
+          const targetHref = shopBtn.getAttribute('href') || 'index.html#best-sellers';
+          setTimeout(() => {
+            window.location.href = targetHref;
+            setTimeout(() => shopBtn.classList.remove('loading'), 1200);
+          }, 250);
+        }
+        return;
+      }
+
       const btn = e.target.closest('button[data-remove]');
-      if (!btn) return;
-      const idx = Number(btn.getAttribute('data-remove'));
-      const items = loadCart();
-      items.splice(idx, 1);
-      saveCart(items);
-      renderCart();
+      const qtyBtn = e.target.closest('button[data-action]');
+      if (btn) {
+        const idx = Number(btn.getAttribute('data-remove'));
+        const items = loadCart();
+        items.splice(idx, 1);
+        saveCart(items);
+        renderCart();
+        return;
+      }
+      if (qtyBtn) {
+        const idx = Number(qtyBtn.getAttribute('data-index'));
+        const action = qtyBtn.getAttribute('data-action');
+        const items = loadCart();
+        if (!items[idx]) return;
+        if (action === 'increase') {
+          items[idx].quantity = (items[idx].quantity || 1) + 1;
+        } else if (action === 'decrease') {
+          items[idx].quantity = Math.max(1, (items[idx].quantity || 1) - 1);
+        }
+        saveCart(items);
+        renderCart();
+      }
     });
 
     qsa('.add-to-cart').forEach((btn) => {
@@ -153,10 +227,16 @@
         const price = parseFloat(btn.getAttribute('data-price') || '0');
         const image = btn.getAttribute('data-image') || '';
         const items = loadCart();
-        items.push({ name, price, image });
+        const existing = items.find((i) => i.name === name);
+        if (existing) {
+          existing.quantity = (existing.quantity || 1) + 1;
+        } else {
+          items.push({ name, price, image, quantity: 1 });
+        }
         saveCart(items);
         renderCart();
         toggleCart(true);
+        showToast('Saved to cart');
       });
     });
   }
@@ -166,6 +246,21 @@
     el.textContent = message;
     el.classList.remove('error', 'success');
     el.classList.add(type);
+  }
+
+  let toastTimer;
+  function showToast(message) {
+    let toast = qs('#cart-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'cart-toast';
+      toast.className = 'toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
   function attachAuthHandlers() {
